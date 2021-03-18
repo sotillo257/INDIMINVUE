@@ -109,6 +109,7 @@
 </template>
 
 <script>
+  import { mapState } from 'vuex'
   export default {
     name: 'PageCiudadanoAdmin',
     //Declaracion de variables de la pagina
@@ -151,10 +152,10 @@
           console.log(respuesta);
           if (respuesta.data.result) {
             respuesta.data.ciudadanos.forEach(item => {
-              Ciudadadnos.push({ Id: item.Id, Nombre: item.Nombre, Apellido: item.Apellido, Edad: item.Edad });
+              Ciudadadnos.push({ Id: item.id, Nombre: item.nombre, Apellido: item.apellido, Edad: item.edad });
 
             })
-            this.listCondominio = Ciudadadnos;  
+            this.listCiudadano = Ciudadadnos;  
           } else {
             this.$q.notify({
               message: 'Error al obtener ciudadanos: ' + respuesta.Mensaje,
@@ -182,19 +183,17 @@
         try
         {
           if (this.Editar) {
-            this.selected[0].Nombre = this.Nombre;
-            this.selected[0].Apellido = this.Apellido;
-            this.selected[0].edad = this.Edad;
-          } else {
-            //Guarda el Ciudadano en la lista Ciudadano
          
             this.$q.loading.show();
             //this.$axios.defaults.headers.common.Accept = 'application/json'
-            const respuesta = await this.$axios.post('/Ciudadano/', { Nombre: this.Nombre, Apellido: this.Apellido, Edad: this.Edad })      
+            const respuesta = await this.$axios.put('/Ciudadano', { Id: this.selected[0].Id,  Nombre: this.Nombre, Apellido: this.Apellido, Edad: parseInt(this.Edad) })
             this.$q.loading.hide();
             console.log(respuesta);
-            if (respuesta.Result) {
-              this.listCiudadano.push({ Id: 3, Nombre: this.Nombre, Apellido: this.Apellido, Edad: this.Edad });
+            console.log(respuesta.data.result);
+            if (respuesta.data.result) {
+              this.selected[0].Nombre = this.Nombre;
+              this.selected[0].Apellido = this.Apellido;
+              this.selected[0].Edad = this.Edad;
               //Envia notificacion de ingreso satisfactorio
               this.$q.notify({
                 message: 'Ciudadano guardado',
@@ -211,7 +210,38 @@
               this.Agregar = false;
             } else {
               this.$q.notify({
-                message: 'Error al insertar un Ciudadano: ' + respuesta.Mensaje,
+                message: 'Error al modificar el Ciudadano: ' + respuesta.Mensaje,
+                color: 'red-4',
+                textColor: 'white',
+                icon: 'cloud_done'
+              })
+            }
+          } else {
+            //Guarda el Ciudadano en la lista Ciudadano
+         
+            this.$q.loading.show();
+            //this.$axios.defaults.headers.common.Accept = 'application/json'
+            const respuesta = await this.$axios.post('/Ciudadano', { Nombre: this.Nombre, Apellido: this.Apellido, Edad: parseInt(this.Edad)})      
+            this.$q.loading.hide();
+            if (respuesta.result) {
+              this.listCiudadano.push({ Id: respuesta.ciudadano.id, Nombre: this.Nombre, Apellido: this.Apellido, Edad: this.Edad });
+              //Envia notificacion de ingreso satisfactorio
+              this.$q.notify({
+                message: 'Ciudadano guardado',
+                color: 'green-4',
+                textColor: 'white',
+                icon: 'cloud_done'
+              })
+              //Limpia los campos del formulario
+              this.onReset();
+
+              //Reinicia la validacion del formulario
+              this.$refs.myForm.resetValidation();
+              //Oculta el formulario para agregar Ciudadanos
+              this.Agregar = false;
+            } else {
+              this.$q.notify({
+                message: 'Error al insertar el Ciudadano: ' + respuesta.Mensaje,
                 color: 'red-4',
                 textColor: 'white',
                 icon: 'cloud_done'
@@ -250,6 +280,7 @@
       showEditar() {
         if (this.selected.length > 0) {
           this.Editar = true;
+          console.log(this.selected[0]);
           this.Nombre = this.selected[0].Nombre;
           this.Apellido = this.selected[0].Apellido;
           this.Edad = this.selected[0].Edad;
