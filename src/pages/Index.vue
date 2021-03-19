@@ -185,7 +185,6 @@
           if (this.Editar) {
          
             this.$q.loading.show();
-            //this.$axios.defaults.headers.common.Accept = 'application/json'
             const respuesta = await this.$axios.put('/Ciudadano', { Id: this.selected[0].Id,  Nombre: this.Nombre, Apellido: this.Apellido, Edad: parseInt(this.Edad) })
             this.$q.loading.hide();
             console.log(respuesta);
@@ -249,7 +248,6 @@
             }
           }
         } catch (e) {
-          console.log(e);
           this.$q.loading.hide();
           this.$q.notify({
             message: 'Error Interno',
@@ -287,18 +285,50 @@
           this.Agregar = true;
         }
       },
-      eliminar() {
-        this.$q.dialog({
-          title: 'Cuidado!',
-          message: 'Desea eliminar este Ciudadano?',
-          cancel: true,
-          persistent: true
-        }).onOk(() => {
-          var indice = this.listCiudadano.indexOf(this.selected[0]);
-          if (indice != -1)
-            this.listCiudadano.splice(indice, 1);
-          
-        })
+      async eliminar() {
+        try {
+         
+          this.$q.dialog({
+            title: 'Cuidado!',
+            message: 'Desea eliminar este Ciudadano?',
+            cancel: true,
+            persistent: true
+          }).onOk(async () => {
+            this.$q.loading.show();
+            const respuesta = await this.$axios.delete('/ciudadano/' + this.selected[0].Id)
+            this.$q.loading.hide();
+            console.log(respuesta);
+            if (respuesta.data.result) {
+              var indice = this.listCiudadano.indexOf(this.selected[0]);
+              if (indice != -1)
+                this.listCiudadano.splice(indice, 1);
+
+              this.$q.notify({
+                message: 'Ciudadano eliminado',
+                color: 'green-4',
+                textColor: 'white',
+                icon: 'cloud_done'
+              })
+            } else {
+              this.$q.notify({
+                message: 'Error al eliminar el Ciudadano: ' + respuesta.Mensaje,
+                color: 'red-4',
+                textColor: 'white',
+                icon: 'cloud_done'
+              })
+            }
+          })
+        } catch (e) {
+          this.$q.loading.hide();
+          this.$q.notify({
+            message: 'Error al eliminar el ciudadano',
+            color: 'red-4',
+            textColor: 'white',
+            icon: 'cloud_done'
+          })
+        }
+        
+        
       },
     },
   }
